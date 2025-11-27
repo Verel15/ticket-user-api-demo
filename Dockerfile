@@ -1,24 +1,29 @@
-# ---------- 1. Builder ----------
-FROM node:18 AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
 COPY package.json yarn.lock ./
+
+# fix network slow
+RUN yarn config set registry https://registry.npmmirror.com
+RUN yarn config set network-timeout 600000
+
 RUN yarn install --frozen-lockfile
 
 COPY . .
 RUN yarn build
 
-# ---------- 2. Production ----------
-FROM node:18-alpine AS production
+FROM node:18-alpine AS runner
 
 WORKDIR /app
+ENV NODE_ENV=production
 
-COPY package.json yarn.lock ./
-RUN yarn install --production --frozen-lockfile
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
-COPY --from=builder /app/dist ./dist
+RUN adduser -D nextuser
+USER nextuser
 
 EXPOSE 3000
-
-CMD ["node", "dist/main.js"]
+CMD ["node", "server.js"]
