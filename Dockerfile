@@ -19,6 +19,6 @@ RUN yarn install --production --frozen-lockfile
 COPY --from=builder /app/dist ./dist
 COPY .env .env
 
-EXPOSE 4001
+EXPOSE 3000
 
 CMD ["node", "dist/main.js"]
