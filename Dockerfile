@@ -1,4 +1,3 @@
-# ---------- 1. Builder ----------
 FROM node:20 AS builder
 
 WORKDIR /app
@@ -10,7 +9,7 @@ COPY . .
 RUN yarn build
 
 # ---------- 2. Production ----------
-FROM node:20-alpine AS production
+FROM node:20-slim AS production
 
 WORKDIR /app
 
@@ -18,6 +17,7 @@ COPY package.json yarn.lock ./
 RUN yarn install --production --frozen-lockfile
 
 COPY --from=builder /app/dist ./dist
+COPY .env .env
 
 EXPOSE 3000
 
